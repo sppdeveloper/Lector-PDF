@@ -7,6 +7,13 @@ const GLOBAL_CONFIG = {
 $(document).ready(function () {
     loadLibrary();
     setupDFlipCustomizations();
+
+    $('#search-input').on('keyup', function () {
+        var value = $(this).val().toLowerCase();
+        $('#library-container .book-card').filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+    });
 });
 
 function loadLibrary() {
@@ -20,7 +27,7 @@ function loadLibrary() {
                 document.title = data.config.site_title;
             }
             if (data.config.welcome_message) {
-                $('#welcome-message').text(data.config.welcome_message);
+                // $('#welcome-message').text(data.config.welcome_message);
             }
         }
 
@@ -107,6 +114,10 @@ function createBookCard(file) {
     btn.attr('source', pdfUrl);
     btn.attr('df-webgl', 'true');
 
+    // --- Habilitar búsqueda y capa de texto ---
+    btn.attr('df-search', 'true');
+    btn.attr('df-text-layer', 'true');
+
     info.append(title, desc, btn);
     card.append(img, info);
 
@@ -127,14 +138,26 @@ function setupDFlipCustomizations() {
             mutation.addedNodes.forEach(function (node) {
                 if (node.nodeType === 1) {
                     const $node = $(node);
+
+                    // 1. Detectar apertura del libro
                     if ($node.hasClass('df-lightbox-wrapper') || $node.hasClass('_df_book-stage')) {
                         addReturnToLibraryButton();
+                        // Intentar personalizar botones con un pequeño retraso
+                        setTimeout(customizeNavigationButtons, 100);
                     }
+
+                    // 2. Detectar cambios en la barra de herramientas
                     if ($node.hasClass('df-ui-wrapper') || $node.find('.df-ui-wrapper').length > 0) {
-                        customizeNavigationButtons();
+                        setTimeout(customizeNavigationButtons, 50);
+                    }
+
+                    // 3. ¡NUEVO! Detectar el menú "Más" (los 3 puntos) donde a veces se esconde la lupa
+                    if ($node.hasClass('df-ui-popup') || $node.find('.df-ui-popup').length > 0) {
+                        setTimeout(customizeNavigationButtons, 50);
                     }
                 }
             });
+
             mutation.removedNodes.forEach(function (node) {
                 if (node.nodeType === 1 && ($(node).hasClass('df-lightbox-wrapper') || $(node).hasClass('_df_book-stage'))) {
                     removeReturnToLibraryButton();
@@ -168,6 +191,18 @@ function addReturnToLibraryButton() {
         .html('<i class="fas fa-arrow-left"></i> Regresar')
         .on('click', closeViewer);
     $('body').append(backBtnLeft);
+
+    window.history.pushState({ modalOpen: true }, '', window.location.href);
+
+    $(window).on('popstate', function (event) {
+        // Si el usuario da "Atrás" en el navegador, cerramos el visor manualmente
+        const nativeClose = $('.df-ui-close');
+        if (nativeClose.length) {
+            nativeClose.trigger('click');
+            // Eliminar listener para no afectar navegación futura
+            $(window).off('popstate');
+        }
+    });
 }
 
 // Remove "Return to Library" button
@@ -191,13 +226,20 @@ function customizeNavigationButtons() {
         '.df-ui-close': '<i class="fas fa-times"></i>',
         '.df-ui-prev': '<i class="fas fa-chevron-left"></i>',
         '.df-ui-next': '<i class="fas fa-chevron-right"></i>',
-        '.df-ui-sound': '<i class="fas fa-volume-up"></i>'
+        '.df-ui-sound': '<i class="fas fa-volume-up"></i>',
+        '.df-ui-search': '<i class="fas fa-search"></i>',
+        '.df-ui-search-box': '<i class="fas fa-search"></i>'
     };
 
     // Aplicar cambios
     $.each(iconMap, function (selector, html) {
-        // Usamos .html() para reemplazar el contenido, 
-        // pero el CSS que añadimos ocultará el ::before original
-        $(selector).html(html);
+        const elements = $(selector);
+        elements.each(function () {
+            if ($(this).find('i.fas').length === 0) {
+                $(this).html(html);
+                // Forzamos que sea visible por si dFlip lo ocultó
+                $(this).css('display', 'flex');
+            }
+        });
     });
 }

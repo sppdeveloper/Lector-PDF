@@ -237,3 +237,51 @@ h1 {
 .df-ui-close i {
     font-size: 16px !important;
 }
+
+
+.df-ui-search {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    width: auto !important;
+    min-width: 30px;
+    /* Asegura espacio para el icono */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Color del icono de la lupa */
+.df-ui-search i {
+    color: white !important;
+    /* O el color que uses en tu tema */
+    font-size: 16px !important;
+    pointer-events: none;
+    /* Asegura que el click pase al botón */
+}
+
+/* Si el botón aparece deshabilitado (gris), forzar color */
+.df-ui-btn.df-ui-search.disabled {
+    opacity: 0.5 !important;
+    display: flex !important;
+    /* Mostrarlo aunque esté deshabilitado */
+}
+
+/* Ajuste del contenedor de búsqueda cuando se abre */
+.df-ui-search-box {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border: 1px solid #444;
+}
+
+.df-ui-search-input {
+    color: #333 !important;
+    /* Texto oscuro para que se lea */
+    background: #fff !important;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+/* Resaltado de texto encontrado */
+.df-text-layer span.highlight {
+    background-color: yellow !important;
+    opacity: 0.5;
+}
