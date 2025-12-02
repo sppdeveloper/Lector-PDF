@@ -10,8 +10,10 @@ $(document).ready(function () {
 });
 
 function loadLibrary() {
-    $.getJSON('data.json', function (data) {
-        // Update Site Config
+    const nocache = new Date().getTime();
+
+    $.getJSON('data.json?v=' + nocache, function (data) {
+        // 1. Configurar Título y Mensaje
         if (data.config) {
             if (data.config.site_title) {
                 $('#site-title').text(data.config.site_title);
@@ -22,7 +24,7 @@ function loadLibrary() {
             }
         }
 
-        // Render Files
+        // 2. Renderizar Libros
         const container = $('#library-container');
         container.empty();
 
@@ -31,13 +33,48 @@ function loadLibrary() {
                 const card = createBookCard(file);
                 container.append(card);
             });
+
+            // 3. NUEVO: Verificar si hay un ID en la URL y abrirlo automáticamente
+            checkUrlParamAndOpen();
+
         } else {
             container.html('<p>No hay documentos disponibles.</p>');
         }
     }).fail(function (jqxhr, textStatus, error) {
         console.error("Error loading data.json:", error);
-        $('#library-container').html('<p>Error al cargar la configuración. Por favor verifica el archivo data.json.</p>');
+        $('#library-container').html('<p>Error al cargar la configuración.</p>');
     });
+}
+
+// Función para leer la URL y abrir el libro específico
+function checkUrlParamAndOpen() {
+    // Obtener parámetros de la URL (ej: ?id=1)
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookId = urlParams.get('id');
+
+    if (bookId) {
+        console.log("ID detectado en URL:", bookId);
+
+        // Buscamos la tarjeta que tenga el ID 'df_[numero]'
+        // Nota: En createBookCard asignamos id="df_ + file.id"
+        const targetCard = $('#df_' + bookId);
+
+        if (targetCard.length > 0) {
+            // Esperamos un momento breve para asegurar que dFlip esté listo
+            setTimeout(function () {
+                // Hacemos scroll hasta la tarjeta (opcional, por si está muy abajo)
+                $('html, body').animate({
+                    scrollTop: targetCard.offset().top - 100
+                }, 500);
+
+                // Simulamos el clic en el botón de leer dentro de esa tarjeta
+                console.log("Abriendo documento...");
+                targetCard.find('.read-btn').trigger('click');
+            }, 500);
+        } else {
+            console.warn("No se encontró ningún documento con el ID:", bookId);
+        }
+    }
 }
 
 function createBookCard(file) {
@@ -51,32 +88,30 @@ function createBookCard(file) {
         thumbUrl = GLOBAL_CONFIG.baseUrl + thumbUrl;
     }
 
-    // Create HTML structure
     const card = $('<div>').addClass('book-card');
 
-    card.attr('source', pdfUrl);
+    // IMPORTANTE: Este ID es el que buscamos desde la URL
     card.attr('id', 'df_' + file.id);
+
+    card.attr('source', pdfUrl);
 
     const img = $('<img>').addClass('book-thumbnail').attr('src', thumbUrl || 'https://via.placeholder.com/300x400?text=No+Cover');
     const info = $('<div>').addClass('book-info');
     const title = $('<div>').addClass('book-title').text(file.title);
     const desc = $('<div>').addClass('book-description').text(file.description);
+
     const btn = $('<a>').addClass('read-btn').text('Leer Documento');
+
+    // Configuración dFlip
+    btn.addClass('_df_button');
+    btn.attr('source', pdfUrl);
+    btn.attr('df-webgl', 'true');
 
     info.append(title, desc, btn);
     card.append(img, info);
 
-    // Click event to open dFlip
     card.on('click', function (e) {
         e.preventDefault();
-    });
-
-    // Better approach: Make the "Read" button a dFlip trigger
-    btn.addClass('_df_button');
-    btn.attr('source', pdfUrl);
-
-    // If we want the whole card to trigger it, we can wrap the content or trigger the button click
-    card.on('click', function (e) {
         if (!$(e.target).is('a')) {
             btn.trigger('click');
         }
@@ -87,29 +122,19 @@ function createBookCard(file) {
 
 // Setup dFlip customizations
 function setupDFlipCustomizations() {
-    // MutationObserver: Vigila cuando dFlip inyecta el visor en el HTML
     const observer = new MutationObserver(function (mutations) {
         mutations.forEach(function (mutation) {
             mutation.addedNodes.forEach(function (node) {
-                // Verificar si es un nodo HTML
-                if (node.nodeType !== 1) return;
-                const $node = $(node);
-
-                // 1. DETECTAR APERTURA DEL VISOR (Contenedor principal)
-                if ($node.hasClass('df-lightbox-wrapper') || $node.hasClass('_df_book-stage')) {
-                    console.log("Visor abierto. Agregando botón regresar...");
-                    addReturnToLibraryButton();
-                }
-
-                // 2. DETECTAR BARRA DE HERRAMIENTAS (Para cambiar iconos)
-                // dFlip carga la UI (df-ui-wrapper) un poco después del contenedor
-                if ($node.hasClass('df-ui-wrapper') || $node.find('.df-ui-wrapper').length > 0) {
-                    console.log("Barra de herramientas detectada. Cambiando iconos...");
-                    customizeNavigationButtons();
+                if (node.nodeType === 1) {
+                    const $node = $(node);
+                    if ($node.hasClass('df-lightbox-wrapper') || $node.hasClass('_df_book-stage')) {
+                        addReturnToLibraryButton();
+                    }
+                    if ($node.hasClass('df-ui-wrapper') || $node.find('.df-ui-wrapper').length > 0) {
+                        customizeNavigationButtons();
+                    }
                 }
             });
-
-            // 3. DETECTAR CIERRE
             mutation.removedNodes.forEach(function (node) {
                 if (node.nodeType === 1 && ($(node).hasClass('df-lightbox-wrapper') || $(node).hasClass('_df_book-stage'))) {
                     removeReturnToLibraryButton();
@@ -117,34 +142,24 @@ function setupDFlipCustomizations() {
             });
         });
     });
-
-    // Iniciar observación en el body
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true // Importante: buscar en profundidad para encontrar la toolbar
-    });
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 // Add "Return to Library" button
 function addReturnToLibraryButton() {
-    // Evitar duplicados
     removeReturnToLibraryButton();
-
-    // Lógica robusta para cerrar
     const closeViewer = function () {
-        console.log("Intentando cerrar visor...");
+        // Al regresar, limpiamos la URL para que no se vuelva a abrir el libro si recarga
+        // Usamos history.pushState para cambiar la URL sin recargar
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.pushState({ path: newUrl }, '', newUrl);
 
-        // Método 1: Simular clic en el botón nativo de cerrar de dFlip
-        const nativeCloseBtn = $('.df-ui-close');
-        if (nativeCloseBtn.length > 0) {
-            nativeCloseBtn.trigger('click');
-        } else {
-            // Método 2 (Fallback): Forzar cierre del lightbox
-            // Nota: dFlip suele usar jQuery, así que trigger click es lo más seguro.
-            // Si eso falla, removemos la clase activa o el nodo.
+        const nativeClose = $('.df-ui-close');
+        if (nativeClose.length) nativeClose.trigger('click');
+        else {
             $('.df-lightbox-wrapper').removeClass('df-active').hide();
-            setTimeout(() => $('.df-lightbox-wrapper').remove(), 100); // Limpieza final
-            $('body').removeClass('df-lightbox-open'); // Restaurar scroll del body
+            setTimeout(() => $('.df-lightbox-wrapper').remove(), 100);
+            $('body').removeClass('df-lightbox-open');
         }
     };
 
@@ -152,7 +167,6 @@ function addReturnToLibraryButton() {
         .addClass('custom-back-btn custom-back-btn-left')
         .html('<i class="fas fa-arrow-left"></i> Regresar')
         .on('click', closeViewer);
-
     $('body').append(backBtnLeft);
 }
 
@@ -187,29 +201,3 @@ function customizeNavigationButtons() {
         $(selector).html(html);
     });
 }
-
-// Observe toolbar changes and reapply icons
-function observeToolbarChanges() {
-    // Find the toolbar container
-    const toolbar = document.querySelector('.df-ui-controls, .df-ui-wrapper, [class*="df-ui"]');
-
-    if (!toolbar) {
-        // If toolbar not found yet, try again later
-        setTimeout(observeToolbarChanges, 500);
-        return;
-    }
-
-    // Create observer to watch for changes
-    const observer = new MutationObserver(function (mutations) {
-        customizeNavigationButtons();
-    });
-
-    // Start observing
-    observer.observe(toolbar, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['class']
-    });
-}
-
