@@ -1,0 +1,16 @@
+{
+    "config": {
+        "site_title": "Biblioteca SPP",
+        "welcome_message": "Bienvenido a la colección de documentos."
+    },
+    "files": [
+        {
+            "id": "1",
+            "title": "Informe de coyuntura Primer semestre 2025",
+            "description": "El presente análisis de coyuntura, correspondiente al primer semestre de 2025, tiene como finalidad ofrecer insumos estratégicos para la toma de decisiones de alto nivel en la Presidencia de la República. Su propósito es anticipar situaciones críticas, identificar riesgos y oportunidades, y comprender mejor las dinámicas sociales e institucionales que inciden en la gobernabilidad democrática.",
+            "file_path": "files/1.pdf",
+            "thumbnail_path": "images/1.jpg",
+            "category": "Informes"
+        }
+    ]
+}
