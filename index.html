@@ -9,10 +9,9 @@
     <!-- jQuery (Required for dFlip) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <!-- dFlip CSS & JS -->
-    <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/dflip.min.css"
-        rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/js/dflip.min.js"></script>
+    <!-- dFlip CSS & JS - Versión 2.3.58 -->
+    <link href="https://js.dearflip.com/wp-content/plugins/dflip/assets/css/dflip.min.css?ver=2.3.58" rel="stylesheet">
+    <script src="https://js.dearflip.com/wp-content/plugins/dflip/assets/js/dflip.min.js?ver=2.3.58"></script>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -35,6 +34,42 @@
     <main id="library-container">
         <!-- Books will be inserted here -->
     </main>
+
+    <!-- Configuración global de dFlip - ANTES de app.js -->
+    <script>
+        window.DFLIP = window.DFLIP || {};
+        window.DFLIP.defaults = window.DFLIP.defaults || {};
+
+        Object.assign(window.DFLIP.defaults, {
+            pdfjsSrc: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js",
+            pdfjsWorkerSrc: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js",
+            threejsSrc: "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            soundEnable: false,
+            showSearchControl: true,
+            enableSearch: true,
+            textLayer: true,
+            text: {
+                toggleThumbnails: "Mostrar miniaturas",
+                toggleOutline: "Mostrar índice",
+                previousPage: "Página anterior",
+                nextPage: "Página siguiente",
+                toggleFullscreen: "Pantalla completa",
+                zoomIn: "Acercar",
+                zoomOut: "Alejar",
+                toggleSound: "Control sonido",
+                toggleHelp: "Mostrar ayuda",
+                singlePageMode: "Modo simple",
+                doublePageMode: "Modo doble",
+                downloadPDFFile: "Descargar PDF",
+                gotoFirstPage: "Primera página",
+                gotoLastPage: "Última página",
+                share: "Compartir",
+                search: "Buscar en PDF",
+                print: "Imprimir",
+                more: "Más opciones"
+            }
+        });
+    </script>
 
     <!-- App Logic -->
     <script src="app.js"></script>
