@@ -1,7 +1,7 @@
 // Global Configuration
 // Change this URL when deploying to the main server
 const GLOBAL_CONFIG = {
-    baseUrl: "http://localhost:80/Lector-PDF/"
+    baseUrl: window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1)
 };
 
 $(document).ready(function () {
