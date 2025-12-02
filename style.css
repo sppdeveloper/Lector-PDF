@@ -104,7 +104,6 @@ h1 {
 .custom-back-btn {
     position: fixed;
     top: 20px;
-    left: 20px;
     z-index: 100000;
     background-color: rgba(0, 123, 255, 0.9);
     color: white;
@@ -119,6 +118,14 @@ h1 {
     gap: 8px;
     transition: all 0.3s;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.custom-back-btn-left {
+    left: 20px;
+}
+
+.custom-back-btn-right {
+    right: 20px;
 }
 
 .custom-back-btn:hover {
@@ -159,7 +166,6 @@ h1 {
     opacity: 1 !important;
     /* Force visibility */
     background-color: rgba(0, 0, 0, 0.5) !important;
-    border-radius: 50%;
     transition: all 0.3s !important;
 }
 
@@ -176,7 +182,58 @@ h1 {
     color: white;
 }
 
-/* Additional dFlip UI controls with icons */
+/* 1. Ocultar los iconos nativos de dFlip (Themify) que usan ::before */
+.df-ui-btn::before,
+.df-ui-btn::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* 2. Asegurar que los iconos <i> que inyectamos tengan prioridad */
 .df-ui-btn i {
-    margin-right: 4px;
+    display: inline-block !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900;
+    /* Necesario para iconos sólidos (fas) */
+    font-style: normal;
+    font-size: 18px;
+    line-height: 1;
+    color: inherit;
+    /* Heredar color del botón (blanco/gris) */
+}
+
+/* Ajuste específico para centrar los iconos si se ven movidos */
+.df-ui-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hide Themify icons and show Font Awesome icons */
+.df-ui-btn [class^="ti-"],
+.df-ui-btn [class*=" ti-"] {
+    display: none !important;
+}
+
+/* Ensure Font Awesome icons are visible in toolbar */
+.df-ui-btn i.fas,
+.df-ui-btn i.fa {
+    display: inline-block !important;
+    font-size: 18px;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900;
+    line-height: 1;
+}
+
+/* Style specific toolbar buttons */
+.df-ui-thumbnail i,
+.df-ui-zoomin i,
+.df-ui-zoomout i,
+.df-ui-fullscreen i,
+.df-ui-share i,
+.df-ui-more i,
+.df-ui-download i,
+.df-ui-print i,
+.df-ui-close i {
+    font-size: 16px !important;
 }

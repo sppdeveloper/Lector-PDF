@@ -87,46 +87,73 @@ function createBookCard(file) {
 
 // Setup dFlip customizations
 function setupDFlipCustomizations() {
-    // Listen for when dFlip opens
-    $(document).on('df:openstart', function (e, flipbook) {
-        // Add "Return to Library" button
-        addReturnToLibraryButton();
+    // MutationObserver: Vigila cuando dFlip inyecta el visor en el HTML
+    const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+            mutation.addedNodes.forEach(function (node) {
+                // Verificar si es un nodo HTML
+                if (node.nodeType !== 1) return;
+                const $node = $(node);
 
-        // Customize navigation buttons with Font Awesome icons after a short delay
-        setTimeout(function () {
-            customizeNavigationButtons();
-        }, 500);
+                // 1. DETECTAR APERTURA DEL VISOR (Contenedor principal)
+                if ($node.hasClass('df-lightbox-wrapper') || $node.hasClass('_df_book-stage')) {
+                    console.log("Visor abierto. Agregando botón regresar...");
+                    addReturnToLibraryButton();
+                }
+
+                // 2. DETECTAR BARRA DE HERRAMIENTAS (Para cambiar iconos)
+                // dFlip carga la UI (df-ui-wrapper) un poco después del contenedor
+                if ($node.hasClass('df-ui-wrapper') || $node.find('.df-ui-wrapper').length > 0) {
+                    console.log("Barra de herramientas detectada. Cambiando iconos...");
+                    customizeNavigationButtons();
+                }
+            });
+
+            // 3. DETECTAR CIERRE
+            mutation.removedNodes.forEach(function (node) {
+                if (node.nodeType === 1 && ($(node).hasClass('df-lightbox-wrapper') || $(node).hasClass('_df_book-stage'))) {
+                    removeReturnToLibraryButton();
+                }
+            });
+        });
     });
 
-    // Remove button when dFlip closes
-    $(document).on('df:closeend', function () {
-        removeReturnToLibraryButton();
+    // Iniciar observación en el body
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true // Importante: buscar en profundidad para encontrar la toolbar
     });
 }
 
 // Add "Return to Library" button
 function addReturnToLibraryButton() {
-    // Remove existing button if any
+    // Evitar duplicados
     removeReturnToLibraryButton();
 
-    // Create button with Font Awesome icon
-    const backBtn = $('<button>')
-        .addClass('custom-back-btn')
-        .html('<i class="fas fa-arrow-left"></i> Regresar a la biblioteca')
-        .on('click', function () {
-            // Close the dFlip viewer
-            if (window.DFLIP && window.DFLIP.getBooks) {
-                const books = window.DFLIP.getBooks();
-                if (books && books.length > 0) {
-                    books[0].dispose();
-                }
-            }
-            // Alternative: trigger close on any open flipbook
-            $('._df_book-stage').trigger('click');
-            $('._df_lightbox-close').trigger('click');
-        });
+    // Lógica robusta para cerrar
+    const closeViewer = function () {
+        console.log("Intentando cerrar visor...");
 
-    $('body').append(backBtn);
+        // Método 1: Simular clic en el botón nativo de cerrar de dFlip
+        const nativeCloseBtn = $('.df-ui-close');
+        if (nativeCloseBtn.length > 0) {
+            nativeCloseBtn.trigger('click');
+        } else {
+            // Método 2 (Fallback): Forzar cierre del lightbox
+            // Nota: dFlip suele usar jQuery, así que trigger click es lo más seguro.
+            // Si eso falla, removemos la clase activa o el nodo.
+            $('.df-lightbox-wrapper').removeClass('df-active').hide();
+            setTimeout(() => $('.df-lightbox-wrapper').remove(), 100); // Limpieza final
+            $('body').removeClass('df-lightbox-open'); // Restaurar scroll del body
+        }
+    };
+
+    const backBtnLeft = $('<button>')
+        .addClass('custom-back-btn custom-back-btn-left')
+        .html('<i class="fas fa-arrow-left"></i> Regresar')
+        .on('click', closeViewer);
+
+    $('body').append(backBtnLeft);
 }
 
 // Remove "Return to Library" button
@@ -136,48 +163,53 @@ function removeReturnToLibraryButton() {
 
 // Customize navigation buttons with Font Awesome icons
 function customizeNavigationButtons() {
-    // Add icons to previous button
-    $('.df-ui-prev').each(function () {
-        if (!$(this).find('i').length) {
-            $(this).html('<i class="fas fa-chevron-left"></i>');
-        }
-    });
+    // Mapa de selectores de dFlip a iconos FontAwesome
+    const iconMap = {
+        '.df-ui-thumbnail': '<i class="fas fa-th-large"></i>',
+        '.df-ui-outline': '<i class="fas fa-list"></i>',
+        '.df-ui-zoomin': '<i class="fas fa-plus"></i>',
+        '.df-ui-zoomout': '<i class="fas fa-minus"></i>',
+        '.df-ui-fullscreen': '<i class="fas fa-expand"></i>',
+        '.df-ui-share': '<i class="fas fa-share-alt"></i>',
+        '.df-ui-more': '<i class="fas fa-ellipsis-h"></i>',
+        '.df-ui-download': '<i class="fas fa-download"></i>',
+        '.df-ui-print': '<i class="fas fa-print"></i>',
+        '.df-ui-close': '<i class="fas fa-times"></i>',
+        '.df-ui-prev': '<i class="fas fa-chevron-left"></i>',
+        '.df-ui-next': '<i class="fas fa-chevron-right"></i>',
+        '.df-ui-sound': '<i class="fas fa-volume-up"></i>'
+    };
 
-    // Add icons to next button
-    $('.df-ui-next').each(function () {
-        if (!$(this).find('i').length) {
-            $(this).html('<i class="fas fa-chevron-right"></i>');
-        }
-    });
-
-    // Add icons to other common controls if they exist
-    $('.df-ui-zoom-in').each(function () {
-        if (!$(this).find('i').length) {
-            $(this).prepend('<i class="fas fa-search-plus"></i> ');
-        }
-    });
-
-    $('.df-ui-zoom-out').each(function () {
-        if (!$(this).find('i').length) {
-            $(this).prepend('<i class="fas fa-search-minus"></i> ');
-        }
-    });
-
-    $('.df-ui-fullscreen').each(function () {
-        if (!$(this).find('i').length) {
-            $(this).prepend('<i class="fas fa-expand"></i> ');
-        }
-    });
-
-    $('.df-ui-share').each(function () {
-        if (!$(this).find('i').length) {
-            $(this).prepend('<i class="fas fa-share-alt"></i> ');
-        }
-    });
-
-    $('.df-ui-download').each(function () {
-        if (!$(this).find('i').length) {
-            $(this).prepend('<i class="fas fa-download"></i> ');
-        }
+    // Aplicar cambios
+    $.each(iconMap, function (selector, html) {
+        // Usamos .html() para reemplazar el contenido, 
+        // pero el CSS que añadimos ocultará el ::before original
+        $(selector).html(html);
     });
 }
+
+// Observe toolbar changes and reapply icons
+function observeToolbarChanges() {
+    // Find the toolbar container
+    const toolbar = document.querySelector('.df-ui-controls, .df-ui-wrapper, [class*="df-ui"]');
+
+    if (!toolbar) {
+        // If toolbar not found yet, try again later
+        setTimeout(observeToolbarChanges, 500);
+        return;
+    }
+
+    // Create observer to watch for changes
+    const observer = new MutationObserver(function (mutations) {
+        customizeNavigationButtons();
+    });
+
+    // Start observing
+    observer.observe(toolbar, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class']
+    });
+}
+
