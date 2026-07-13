@@ -9,7 +9,7 @@ $(document).ready(function () {
 
     $('#search-input').on('keyup', function () {
         var value = $(this).val().toLowerCase();
-        $('#library-container .book-card').filter(function () {
+        $('#library-container .book-card:not(.book-card-hidden)').filter(function () {
             $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
         });
     });
@@ -64,9 +64,11 @@ function checkUrlParamAndOpen() {
 
         if (targetCard.length > 0) {
             setTimeout(function () {
-                $('html, body').animate({
-                    scrollTop: targetCard.offset().top - 100
-                }, 500);
+                if (!targetCard.hasClass('book-card-hidden')) {
+                    $('html, body').animate({
+                        scrollTop: targetCard.offset().top - 100
+                    }, 500);
+                }
                 targetCard.find('.read-btn').trigger('click');
             }, 800);
         }
@@ -86,6 +88,9 @@ function createBookCard(file) {
 
     const card = $('<div>').addClass('book-card');
     card.attr('id', 'df_' + file.id);
+    if (file.hidden) {
+        card.addClass('book-card-hidden');
+    }
 
     const img = $('<img>').addClass('book-thumbnail').attr('src', thumbUrl || 'https://via.placeholder.com/300x400?text=No+Cover');
     const info = $('<div>').addClass('book-info');
@@ -99,6 +104,25 @@ function createBookCard(file) {
     btn.attr('webgl', 'true');
 
     info.append(title, desc, btn);
+
+    const shareRelative = file.url || ('index.html?id=' + file.id);
+    const shareUrl = (!shareRelative.startsWith('http') && !shareRelative.startsWith('/'))
+        ? GLOBAL_CONFIG.baseUrl + shareRelative
+        : shareRelative;
+    const shareBtn = $('<button>').addClass('share-btn').attr('type', 'button').html('<i class="fas fa-share-alt"></i> Copiar enlace');
+    shareBtn.on('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        navigator.clipboard.writeText(shareUrl).then(function () {
+            const original = shareBtn.text();
+            shareBtn.text('¡Enlace copiado!');
+            setTimeout(function () { shareBtn.html('<i class="fas fa-share-alt"></i> Copiar enlace'); }, 1500);
+        }).catch(function () {
+            window.prompt('Copia el enlace:', shareUrl);
+        });
+    });
+    info.append(shareBtn);
+
     card.append(img, info);
 
     card.on('click', function (e) {
@@ -108,7 +132,25 @@ function createBookCard(file) {
         }
     });
 
+    btn.on('click', function () {
+        setDocumentIdInUrl(file.id);
+    });
+
     return card;
+}
+
+function setDocumentIdInUrl(id) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('id', id);
+    window.history.replaceState(null, '', url);
+}
+
+function clearDocumentIdFromUrl() {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('id')) {
+        url.searchParams.delete('id');
+        window.history.replaceState(null, '', url);
+    }
 }
 
 function setupDFlipCustomizations() {
@@ -123,26 +165,22 @@ function setupDFlipCustomizations() {
                     }
                 }
             });
+            mutation.removedNodes.forEach(function (node) {
+                if (node.nodeType === 1 && $(node).hasClass('df-lightbox-wrapper')) {
+                    clearDocumentIdFromUrl();
+                }
+            });
         });
     });
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
+function removeReturnToLibraryButton() {
+    $(window).off('popstate');
+}
+
 function addReturnToLibraryButton() {
     removeReturnToLibraryButton();
-
-    const closeViewer = function () {
-        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-        window.history.pushState({ path: newUrl }, '', newUrl);
-
-        const nativeClose = $('.df-ui-close');
-        if (nativeClose.length) nativeClose.trigger('click');
-        else {
-            $('.df-lightbox-wrapper').removeClass('df-active').hide();
-            setTimeout(() => $('.df-lightbox-wrapper').remove(), 100);
-            $('body').removeClass('df-lightbox-open');
-        }
-    };
 
     window.history.pushState({ modalOpen: true }, '', window.location.href);
 
