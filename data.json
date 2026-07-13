@@ -10,7 +10,9 @@
             "description": "El presente análisis de coyuntura, correspondiente al año 2025, tiene como finalidad ofrecer insumos estratégicos para la toma de decisiones de alto nivel en la Presidencia de la República. Su propósito es anticipar situaciones críticas, identificar riesgos y oportunidades, y comprender mejor las dinámicas sociales e institucionales que inciden en la gobernabilidad democrática.",
             "file_path": "files/informe_coyuntura_anual_2025.pdf",
             "thumbnail_path": "images/informe_coyuntura_anual_2025.jpg",
-            "category": "Informes"
+            "category": "Informes",
+            "url": "index.html?id=1",
+            "hidden": true
         },
         {
             "id": "2",
@@ -18,7 +20,17 @@
             "description": "Durante el primer semestre del 2026 el país atravesó un periodo intenso de elección de autoridades de órganos de control, coincidiendo por primera vez en décadas, la renovación de magistrados del Tribunal Supremo Electoral (TSE), fiscal general del Ministerio Público (MP) y magistrados de la Corte de Constitucionalidad (CC). Al igual que en procesos anteriores, estos se desarrollaron entre cuestionamientos por la independencia y transparencia, exclusión de candidatos e intentos de influencia de actores externos; a continuación, se presentan un resumen de lo más relevante de cada una de ellas.",
             "file_path": "files/informe_final_eleccion_segundo_grado_2026.pdf",
             "thumbnail_path": "images/informe_elecciones_2026.jpg",
-            "category": "Informes"
+            "category": "Informes",
+            "url": "index.html?id=2"
+        },
+        {
+            "id": "3",
+            "title": "Album candidatos",
+            "description": "Album para visualizar los candidatos",
+            "file_path": "files/album-completo-2026-07-13.pdf",
+            "thumbnail_path": "images/Panini.png",
+            "category": "Informes",
+            "url": "index.html?id=3"
         }
     ]
 }
