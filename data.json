@@ -33,22 +33,22 @@
             "url": "index.html?id=3"
         },
                 {
-            "id": "3",
+            "id": "4",
             "title": "Informe de Coyuntura Semestral 2026",
             "description": "Informe de coyuntura enero a junio 2026",
             "file_path": "files/informe_ejecutivo_de_coyuntura_semestral_2026.pdf",
             "thumbnail_path": "images/informe_ejecutivo_de_coyuntura_semestral_2026.png",
             "category": "Informes",
-            "url": "index.html?id=3"
+            "url": "index.html?id=4"
         },
                         {
-            "id": "4",
+            "id": "5",
             "title": "Informe de Coyuntura Semestral 2026 Integrado",
             "description": "Informe de coyuntura enero a junio 2026 Integrado",
             "file_path": "files/informe_de_coyuntura_semestral_2026_integrado.pdf",
             "thumbnail_path": "images/informe_de_coyuntura_semestral_2026_integrado.png",
             "category": "Informes",
-            "url": "index.html?id=3"
+            "url": "index.html?id=5"
         }
     ]
 }
